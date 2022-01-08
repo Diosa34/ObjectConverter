@@ -7,4 +7,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface ClassAnnotation {
     String value();
+    boolean iterable() default false;
 }
