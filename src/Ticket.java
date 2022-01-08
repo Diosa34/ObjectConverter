@@ -1,4 +1,4 @@
-@ClassAnnotation("ticket")
+@ClassAnnotation("element")
 public class Ticket {
     @FieldAnnotation("number")
     private int number;

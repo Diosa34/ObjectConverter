@@ -14,34 +14,55 @@ public class Converter {
         this.rootTag = rootTag;
     }
 
-    public void reflection(ArrayList instances) throws IllegalAccessException {
-        for(Object instance: instances) {
-
-            /** Добавление тега-потомка соответствующего названию класса */
-            String className = instance.getClass().getAnnotation(ClassAnnotation.class).value();
-            xmlList.add("<"+className+">");
-
-            /** Добавление тегов-подпотомков */
+    public void reflection(Object instance, boolean iterable) throws IllegalAccessException {
+        /** Если в метод передали объект, не содержащий в себе другие объекты */
+        if (!iterable) {
             for (Field field : instance.getClass().getDeclaredFields()) {
-                FieldAnnotation annotation = field.getAnnotation(FieldAnnotation.class);
-                if (annotation != null) {
+                /** Если поле содержит список, вызывается данный метод, а этот список передаётся как аргумент */
+                ListAnnotation listAnnotation = field.getAnnotation(ListAnnotation.class);
+                if (listAnnotation != null) {
                     field.setAccessible(true);
-                    xmlList.add("    <" + annotation.value() + ">" + field.get(instance) + "</" + annotation.value() + ">");
+                    reflection(field.get(instance), listAnnotation.iterable());
+                }
+
+                /** Если поле содержит объект класса, вызывается данный метод, а этот объект передаётся как аргумент */
+                InstanceAnnotation instanceAnnotation = field.getAnnotation(InstanceAnnotation.class);
+                if (instanceAnnotation != null) {
+                    field.setAccessible(true);
+                    String className = field.get(instance).getClass().getAnnotation(ClassAnnotation.class).value();
+
+                    xmlList.add("    <" + className + ">");
+                    xmlList.add("    </" + className + ">");
+                    reflection(field.get(instance), instanceAnnotation.iterable());
+                }
+
+                /** Если поле содержит данные, которые нужно записать в файл .xml, добавляем соответствующую строку
+                 * в список строк для будущего файла */
+                FieldAnnotation fieldAnnotation = field.getAnnotation(FieldAnnotation.class);
+                if (fieldAnnotation != null) {
+                    field.setAccessible(true);
+                    xmlList.add(xmlList.size() - 1, "        <" + fieldAnnotation.value() + ">"
+                            + field.get(instance) + "</" + fieldAnnotation.value() + ">");
                 }
             }
-
-            xmlList.add("</"+className+">");
         }
 
-        /** Добавление корневого тега и сдвиг в случае, если описывается несколько объектов,
-         * иначе корневым тегом является добавленный ранее тег-потомок*/
-        if (instances.size() > 1){
-            for(String str : xmlList){
-                xmlList.set(xmlList.indexOf(str), "    "+str);
+        /** Если в метод передали объект, содержащий в себе другие объекты */
+        if (iterable) {
+            for (Object elem : (Iterable) instance) {
+                /** Для каждого объекта добавляем тег-потомок и обрабатываем данный объект с помощью
+                 *  {@link Converter#reflection(Object)} */
+                String className = elem.getClass().getAnnotation(ClassAnnotation.class).value();
+                xmlList.add("    <" + className + ">");
+                xmlList.add("    </" + className + ">");
+                reflection(elem, false);
             }
-            xmlList.add(0,"<"+this.rootTag+">");
-            xmlList.add("</"+this.rootTag+">");
         }
+    }
+
+    public void addRootTag(){
+        xmlList.add(0, "<" + this.rootTag + ">");
+        xmlList.add("</" + this.rootTag + ">");
     }
 
     public void writeXML(Path file) throws IOException {
