@@ -1,46 +1,54 @@
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 
 
 public class Converter {
-    ArrayList<String> xmlList = new ArrayList<>();
+    FileWriter writer;
 
-    public void reflection(Object instance, Integer indent) throws IllegalAccessException {
-        /** Если в метод передали объект, не содержащий в себе другие объекты */
+    Converter(String fileName) throws IOException {
+        /** Creating a file to write to */
+        this.writer = new FileWriter(fileName);
+    }
+
+    private void writeToFile(Convertible instance, Integer indent) throws IllegalAccessException, IOException {
+        /** If an object that does not contain other objects is passed to the method */
         String className = instance.getClass().getAnnotation(ClassAnnotation.class).value();
-        xmlList.add(" ".repeat(indent)+"<" + className + ">");
+        writer.write(" ".repeat(indent)+"<" + className + ">\n");
 
 
-        if (!instance.getClass().getAnnotation(ClassAnnotation.class).iterable()) {
+        if (!Iterable.class.isAssignableFrom(instance.getClass())) {
             for (Field field : instance.getClass().getDeclaredFields()) {
-                /** Если поле содержит данные, которые нужно записать в файл .xml, добавляем соответствующую строку
-                 * в список строк для будущего файла */
+                /** If the field contains data that needs to be written to the .xml file, write it to the file */
                 FieldAnnotation fieldAnnotation = field.getAnnotation(FieldAnnotation.class);
                 if (fieldAnnotation != null) {
                     field.setAccessible(true);
-                    xmlList.add("        <" + fieldAnnotation.value() + ">"
-                            + field.get(instance) + "</" + fieldAnnotation.value() + ">");
+                    writer.write("        <" + fieldAnnotation.value() + ">"
+                            + field.get(instance) + "</" + fieldAnnotation.value() + ">\n");
                 }
             }
         }
 
-        /** Если в метод передали объект, содержащий в себе другие объекты */
+        /** If an object that contain other objects is passed to the method */
         else {
             for (Object elem : (Iterable) instance) {
-                /** Для каждого объекта добавляем тег-потомок и обрабатываем данный объект с помощью
-                 *  {@link Converter#reflection(Object)} */
-                reflection(elem, indent + 4);
+                /** For each object, we add a child-tag and call {@link Converter#writeToFile(Convertible, Integer)} */
+                if (Convertible.class.isAssignableFrom(elem.getClass())){
+                    writeToFile((Convertible) elem, indent + 4);
+                }
+                else {
+                    throw new IllegalArgumentException("The objects contained in an instance do not implements interface 'Convertible'");
+                }
             }
         }
-        xmlList.add(" ".repeat(indent)+"</" + className + ">");
+        writer.write(" ".repeat(indent)+"</" + className + ">\n");
     }
 
-
-    public void writeXML(Path file) throws IOException {
-        Files.write(file, this.xmlList, StandardCharsets.UTF_8);
+    /** Call {@link Converter#writeToFile(Convertible, Integer)} to convert an object, write data to the file
+     *  and close file */
+    public void xmlInitialization(Convertible instance, Integer indent) throws IOException, IllegalAccessException {
+        writeToFile(instance, indent);
+        writer.flush();
+        writer.close();
     }
 }

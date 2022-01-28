@@ -2,11 +2,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 
 public class Main {
     public static void main(String[] args) throws IllegalAccessException, IOException {
-        @ClassAnnotation(value = "catalog", iterable = true)
-        class Catalog extends ArrayList<Ticket>{
+        @ClassAnnotation(value = "catalog")
+        class Catalog extends ArrayList<Convertible> implements Convertible{
         }
 
         Catalog catalog = new Catalog();
@@ -16,14 +17,9 @@ public class Main {
                 "6000 руб.", "Бенуар", 3, 20));
 
 
-        Converter converter = new Converter();
+        Converter converter = new Converter("MyXML.xml");
 
-        Path file = Paths.get("MyXML.xml");
-
-        /** Создание списков строк для файлов различных форматов {@link Converter#reflection(Object)} */
-        converter.reflection(catalog, 0);
-
-        /** Запись в файлы соответствующих форматов {@link Converter#writeXML(Path)}*/
-        converter.writeXML(file);
+        /** Writing converted data to a file {@link Converter#xmlInitialization(Convertible, Integer)}*/
+        converter.xmlInitialization(catalog, 0);
     }
 }

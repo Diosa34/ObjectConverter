@@ -1,5 +1,5 @@
 @ClassAnnotation("element")
-public class Ticket {
+public class Ticket implements Convertible{
     @FieldAnnotation("number")
     private int number;
     @FieldAnnotation("title")
