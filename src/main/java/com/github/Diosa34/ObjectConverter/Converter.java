@@ -1,20 +1,30 @@
-import java.io.FileWriter;
+package com.github.Diosa34.ObjectConverter;
+
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 
 
 public class Converter {
-    FileWriter writer;
+    FileOutputStream fos;
 
     Converter(String fileName) throws IOException {
         /** Creating a file to write to */
-        this.writer = new FileWriter(fileName);
+        this.fos = new FileOutputStream(fileName);
     }
 
     private void writeToFile(Convertible instance, Integer indent) throws IllegalAccessException, IOException {
         /** If an object that does not contain other objects is passed to the method */
         String className = instance.getClass().getAnnotation(ClassAnnotation.class).value();
-        writer.write(" ".repeat(indent)+"<" + className + ">\n");
+        String text1 = " ".repeat(indent)+"<" + className + ">\n";
+        try {
+            // перевод строки в байты
+            byte[] buffer = text1.getBytes();
+            this.fos.write(buffer, 0, buffer.length);
+        }
+        catch(IOException ex){
+            System.out.println(ex.getMessage());
+        }
 
 
         if (!Iterable.class.isAssignableFrom(instance.getClass())) {
@@ -23,8 +33,16 @@ public class Converter {
                 FieldAnnotation fieldAnnotation = field.getAnnotation(FieldAnnotation.class);
                 if (fieldAnnotation != null) {
                     field.setAccessible(true);
-                    writer.write("        <" + fieldAnnotation.value() + ">"
-                            + field.get(instance) + "</" + fieldAnnotation.value() + ">\n");
+                    String text2 = "        <" + fieldAnnotation.value() + ">"
+                            + field.get(instance) + "</" + fieldAnnotation.value() + ">\n";
+                    try {
+                        // перевод строки в байты
+                        byte[] buffer = text2.getBytes();
+                        this.fos.write(buffer, 0, buffer.length);
+                    }
+                    catch(IOException ex){
+                        System.out.println(ex.getMessage());
+                    }
                 }
             }
         }
@@ -41,14 +59,20 @@ public class Converter {
                 }
             }
         }
-        writer.write(" ".repeat(indent)+"</" + className + ">\n");
+        String text3 = " ".repeat(indent)+"</" + className + ">\n";
+        try {
+            // перевод строки в байты
+            byte[] buffer = text3.getBytes();
+            this.fos.write(buffer, 0, buffer.length);
+        }
+        catch(IOException ex){
+            System.out.println(ex.getMessage());
+        }
     }
 
     /** Call {@link Converter#writeToFile(Convertible, Integer)} to convert an object, write data to the file
      *  and close file */
     public void xmlInitialization(Convertible instance, Integer indent) throws IOException, IllegalAccessException {
         writeToFile(instance, indent);
-        writer.flush();
-        writer.close();
     }
 }

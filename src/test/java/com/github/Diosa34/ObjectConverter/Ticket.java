@@ -1,3 +1,5 @@
+package com.github.Diosa34.ObjectConverter;
+
 @ClassAnnotation("element")
 public class Ticket implements Convertible{
     @FieldAnnotation("number")

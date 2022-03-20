@@ -1,8 +1,8 @@
+package com.github.Diosa34.ObjectConverter;
+
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
+
 
 public class Main {
     public static void main(String[] args) throws IllegalAccessException, IOException {
