@@ -3,6 +3,7 @@ package com.github.Diosa34.ObjectConverter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Collections;
 
 
 public class Converter {
@@ -16,7 +17,7 @@ public class Converter {
     private void writeToFile(Convertible instance, Integer indent) throws IllegalAccessException, IOException {
         /** If an object that does not contain other objects is passed to the method */
         String className = instance.getClass().getAnnotation(ClassAnnotation.class).value();
-        String text1 = " ".repeat(indent)+"<" + className + ">\n";
+        String text1 = String.join("", Collections.nCopies(indent, " "))+"<" + className + ">\n";
         try {
             // перевод строки в байты
             byte[] buffer = text1.getBytes();
@@ -59,7 +60,7 @@ public class Converter {
                 }
             }
         }
-        String text3 = " ".repeat(indent)+"</" + className + ">\n";
+        String text3 = String.join("", Collections.nCopies(indent, " "))+"</" + className + ">\n";
         try {
             // перевод строки в байты
             byte[] buffer = text3.getBytes();
