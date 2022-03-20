@@ -9,7 +9,7 @@ import java.util.Collections;
 public class Converter {
     FileOutputStream fos;
 
-    Converter(String fileName) throws IOException {
+    public Converter(String fileName) throws IOException {
         /** Creating a file to write to */
         this.fos = new FileOutputStream(fileName);
     }
